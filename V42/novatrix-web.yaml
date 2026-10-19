@@ -1,0 +1,75 @@
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Novatrix web server - EC2 and Apache"
+
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: nova-key
+
+  SSHLocation:
+    Type: String
+    Description: Your public IPv4 address with /32
+
+  LatestAmazonLinux2023:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+
+Resources:
+  NovatrixWebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SSH from my IP and public HTTP
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHLocation
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: novatrix-web-sg
+
+  NovatrixWebInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmazonLinux2023
+      InstanceType: t3.micro
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+        - !GetAtt NovatrixWebSecurityGroup.GroupId
+      Tags:
+        - Key: Name
+          Value: novatrix-web
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -eux
+          dnf update -y
+          dnf install -y httpd
+          systemctl enable --now httpd
+          cat > /var/www/html/index.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="sv">
+          <head>
+            <meta charset="UTF-8">
+            <title>Novatrix</title>
+          </head>
+          <body>
+            <h1>Välkommen till Novatrix</h1>
+            <p>Vi hjälper företag att flytta sina webbplatser till AWS.</p>
+          </body>
+          </html>
+          HTML
+
+Outputs:
+  PublicIP:
+    Description: Public IPv4 address
+    Value: !GetAtt NovatrixWebInstance.PublicIp
+
+  WebsiteURL:
+    Description: Website URL
+    Value: !Sub "http://${NovatrixWebInstance.PublicIp}"
