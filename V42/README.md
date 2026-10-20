@@ -63,6 +63,6 @@ INSTANCE_ID="$(aws ec2 run-instances \
 ### Resultat 
 
 <img width="2336" height="352" alt="Skärmbild 2026-10-21 000230" src="https://github.com/user-attachments/assets/fa2c0727-1390-4941-bf43-5532b216f4b7" />
-<img width="720" height="520" alt="Skärmbild 2026-10-21 001028" src="https://github.com/user-attachments/assets/12f6423c-f6c2-4e03-8135-697a71cc4d1a" />
+<img width="500" height="300" alt="Skärmbild 2026-10-21 001028" src="https://github.com/user-attachments/assets/12f6423c-f6c2-4e03-8135-697a71cc4d1a" />
 <img width="2668" height="178" alt="Skärmbild 2026-10-21 000021" src="https://github.com/user-attachments/assets/0cec1095-296c-4d1f-8839-794341c52907" />
 
