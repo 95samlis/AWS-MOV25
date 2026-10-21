@@ -86,10 +86,12 @@ SSH_RULE_ID="$(aws ec2 authorize-security-group-ingress \
   --query 'SecurityGroupRules[0].SecurityGroupRuleId' \
   --output text \
   --region "$REGION")"
+  ```
 
 
  Koden öppnar port 80 för HTTP-trafik från alla publika IPv4-adresser, så att besökare kan nå webbplatsen via internet.
-
+ 
+```bash
 # HTTP – tillgängligt för webbplatsbesökare
 HTTP_RULE_ID="$(aws ec2 authorize-security-group-ingress \
   --group-id "$SG_ID" \
