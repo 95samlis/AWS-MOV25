@@ -174,3 +174,11 @@ chmod +x deploy.sh
 <img width="600" height="400" alt="Skärmbild 2026-10-21 023803" src="https://github.com/user-attachments/assets/73488b64-11f5-4ebd-918d-c4fb7da4a2fd" />
 <img width="500" height="300" alt="Skärmbild 2026-10-21 023703" src="https://github.com/user-attachments/assets/e9218c74-5ab5-4b70-96a2-429013c25303" />
 
+---
+
+### AWS-budget och kostnadslarm
+
+Jag skapade en AWS-budget med larm för både faktisk och prognostiserad kostnad. Jag lade till flera larmgränser och kopplade dem till mina verifierade e-postadresser, så att jag kan få aviseringar om AWS-kostnaderna ökar.
+
+<img width="950" height="486" alt="Skärmbild 2026-10-21 023703" src="https://github.com/user-attachments/assets/7257356a-b8a9-4a15-8945-28ec7e8bf3a9" />
+<img width="1212" height="782" alt="Skärmbild 2026-10-21 023803" src="https://github.com/user-attachments/assets/1105d442-7773-4f07-9842-bb5992c79aa8" />
