@@ -171,6 +171,6 @@ chmod +x deploy.sh
 
 ### Slutresultat 
 
-<img width="800" height="600" alt="Skärmbild 2026-10-21 023803" src="https://github.com/user-attachments/assets/73488b64-11f5-4ebd-918d-c4fb7da4a2fd" />
+<img width="600" height="400" alt="Skärmbild 2026-10-21 023803" src="https://github.com/user-attachments/assets/73488b64-11f5-4ebd-918d-c4fb7da4a2fd" />
 <img width="500" height="300" alt="Skärmbild 2026-10-21 023703" src="https://github.com/user-attachments/assets/e9218c74-5ab5-4b70-96a2-429013c25303" />
 
