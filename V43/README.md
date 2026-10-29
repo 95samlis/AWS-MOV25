@@ -125,7 +125,6 @@ Bilderna visar vilka behörigheter som tilldelats grupperna Utveckling och Drift
 Jag skapade IAM-rollen `novatrix-ec2-s3-read` så att EC2-instansen kan läsa filer från S3. På så sätt behöver servern inga egna åtkomstnycklar.
 
 **1. IAM-roll och behörighet**
-
 Rollen tillåter EC2 att använda den. Policyn ger rätt att lista innehållet i S3-bucketen och läsa objekt.
 
 ```json
