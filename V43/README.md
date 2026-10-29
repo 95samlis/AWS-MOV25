@@ -198,12 +198,12 @@ Bilderna visar att EC2 använder IAM-rollen `novatrix-ec2-s3-read` och kan lista
 
 **S3-policy:**
 
-<img width="864" height="648" alt="Verijson" src="https://github.com/user-attachments/assets/6b2a2a6b-5351-4d88-82ed-1819cd18e251" />
+<img width="340" height="280" alt="Verijson" src="https://github.com/user-attachments/assets/6b2a2a6b-5351-4d88-82ed-1819cd18e251" />
 
 
 **Test från EC2:**
 
-<img width="1448" height="324" alt="veri 2" src="https://github.com/user-attachments/assets/34769adf-bed9-4385-9d6c-3e7aa3895b7f" />
+<img width="1000" height="200" alt="veri 2" src="https://github.com/user-attachments/assets/34769adf-bed9-4385-9d6c-3e7aa3895b7f" />
 
 
 **Motivering**
