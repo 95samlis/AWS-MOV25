@@ -1,6 +1,9 @@
 # Novatrix – Nätverksdokumentation (AWS)
 
-Dokumentation över hur nätverket för Novatrix byggdes upp i AWS, region `eu-north-1`. Principen: **nätverk först, säkerhet sedan.**
+### Syfte
+
+
+Novatrix behöver ett säkert nätverk i AWS. Därför byggdes ett VPC med publika och privata subnät, routing och säkerhetsregler med Security Groups och NACL. Webbservern placeras i det publika subnätet, medan de privata subnäten förbereds för databasen som ska läggas till nästa vecka.
 
 ## Innehåll
 
@@ -15,6 +18,7 @@ Dokumentation över hur nätverket för Novatrix byggdes upp i AWS, region `eu-n
 
 ---
 
+
 ## Översikt
 
 | Komponent | Syfte |
@@ -24,6 +28,11 @@ Dokumentation över hur nätverket för Novatrix byggdes upp i AWS, region `eu-n
 | **Internet Gateway** | Ger VPC:et en väg ut mot internet |
 | **Route tables** | Avgör vilka subnät som når internet |
 | **Resurser** | Ligger i subnät och får privata IP-adresser därifrån |
+
+## Nätverkskiss
+Bilden visar Novatrix nätverksdesign i AWS med VPC, subnät, routing och säkerhetslager.
+
+<img width="2400" height="1660" alt="novatrix-natverksdesign (1)" src="https://github.com/user-attachments/assets/18bd65e2-a9a5-43dd-a109-21f098cda034" />
 
 ---
 
