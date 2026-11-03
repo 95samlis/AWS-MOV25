@@ -1,4 +1,3 @@
-```bash
 #!/bin/bash
 set -e
 
@@ -33,4 +32,4 @@ aws iam add-user-to-group \
 
 echo "Novatrix IAM users and groups are configured."
 echo "Console login profiles will be configured separately."
-```
+

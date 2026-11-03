@@ -1,4 +1,3 @@
-```bash
 #!/bin/bash
 set -e
 
@@ -75,4 +74,3 @@ aws iam attach-group-policy \
   --policy-arn "$DRIFT_POLICY_ARN"
 
 echo "Novatrix IAM policies har skapats och kopplats till grupperna."
-```

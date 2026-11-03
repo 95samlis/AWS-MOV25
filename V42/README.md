@@ -1,6 +1,6 @@
 # V 42 Komma igång med Compute
 
-**Samuel Lissbro**
+**Samuel Lissbro** 
 
 Det jag ska göra är att skapa en virtuell server i AWS med EC2, installera och driftsätta en webbserver för Novatrix AB.
 Jag valde först att skapa och konfigurera en EC2-instans manuellt i AWS-portalen för att förstå hur miljön är uppbyggd. Jag satte även upp ett key pair som jag kan återanvända när jag bygger upp miljön på nytt. Därefter använde jag ett Bash-skript via AWS CLI i CloudShell för att automatisera skapandet av EC2-instansen och säkerhetsgruppen.
