@@ -53,6 +53,11 @@ VPC_ID=$(aws ec2 create-vpc \
 | IPv4 CIDR | `10.0.0.0/16` |
 | IPv6 | Inte aktiverat |
 
+### Verifiering 
+
+<img width="2508" height="88" alt="image" src="https://github.com/user-attachments/assets/b3eb121a-0cca-4aca-be28-350fa2b74225" />
+
+
 ---
 
 ## 2. Subnät och Availability Zones
@@ -85,6 +90,11 @@ create_subnet \
 ```
 
 Det publika subnätet får automatisk tilldelning av publik IPv4-adress. Den funktionen är avstängd för de privata subnäten.
+
+### Verifiering
+
+<img width="2574" height="154" alt="image" src="https://github.com/user-attachments/assets/47070499-97d9-46f9-98d2-6eafa57b4187" />
+
 
 ### Filreferens
 
@@ -120,8 +130,9 @@ Regeln innebär att all IPv4-trafik som inte har en annan, mer specifik route sk
 
 Under **Subnet associations → Edit** valdes `novatrix-public` och kopplades till `novatrix-public-rt`. Det ger det publika subnätet en väg till internet via Internet Gateway.
 
-<!-- Lägg till bild: -->
-<!-- ![Route table med subnet association](images/route-table.png) -->
+<img width="1718" height="182" alt="image" src="https://github.com/user-attachments/assets/3f4ca383-3885-4c79-9eb0-03ee9a193900" />
+
+<img width="2478" height="202" alt="image" src="https://github.com/user-attachments/assets/a1353a8f-0864-450b-8afb-1c8859ff241f" />
 
 ---
 
@@ -139,28 +150,28 @@ En Security Group skapades via EC2 och kopplades till `novatrix-vpc`.
 
 **Syfte:** Webbservern ska vara tillgänglig via HTTP och HTTPS, medan administrativ åtkomst via SSH endast tillåts från min egen IP-adress.
 
-<!-- Bifoga bild: -->
-<!-- ![Security group novatrix-web-sg](images/security-group.png) -->
+### Verifiering
+
+<img width="2210" height="104" alt="Skärmbild 2026-11-03 214722" src="https://github.com/user-attachments/assets/714d4aec-3922-4ee8-9d10-1c06420489e4" />
+
+<img width="2030" height="282" alt="Skärmbild 2026-11-03 220144" src="https://github.com/user-attachments/assets/51bf3bff-f157-4a73-9d43-c8da2ebc8997" />
 
 ---
 
 ## 5. Skapa AMI – `novatrix-web-v44`
 
-**Syfte:** Skapa en kopia av den befintliga webbservern så att en ny EC2-instans kan startas i det nya publika subnätet utan att behöva konfigurera servern från början.
+Den befintliga EC2-instansen `novatrix-web` döptes om till `novatrix-web-gammal` för att skilja den från den nya servern.
 
-En **AMI** är en kopia av serverns disk och används för att skapa nya EC2-instanser.
+Därefter skapades en AMI via **Actions → Create image** med namnet `novatrix-web-v44`.
 
-### Steg
-
-1. Gå till **EC2 → Instances** och markera `novatrix-web`.
-2. Byt namn på den gamla instansen till `novatrix-web-gammal`.
-3. Välj **Actions → Create image**.
-4. Döp AMI:n till `novatrix-web-v44`.
+**Syfte:** AMI:n fungerar som en mall för att skapa en ny EC2-instans med samma serverinnehåll, utan att behöva konfigurera servern från början.
 
 Den skapade AMI:n finns under **EC2 → AMIs → Images**.
 
-<!-- Bifoga bild: -->
-<!-- ![AMI novatrix-web-v44](images/ami.png) -->
+<img width="2640" height="96" alt="image" src="https://github.com/user-attachments/assets/df31d9af-cac9-4f92-945d-0865013a42ea" />
+
+<img width="2698" height="152" alt="imageinstans01" src="https://github.com/user-attachments/assets/18e708a4-7622-4692-85fc-5893705d31fd" />
+
 
 ---
 
@@ -185,6 +196,10 @@ Den nya webbservern startades från AMI:n `novatrix-web-v44`.
 - Den **publika IP-adressen** gör webbservern nåbar via internet.
 - **Security Group** styr tillåten trafik.
 - **IAM-rollen** ger servern behörighet att läsa från S3-bucketen.
+
+<img width="2698" height="152" alt="imageinstans01" src="https://github.com/user-attachments/assets/fc77ba6a-7e58-4488-9786-3f418b8c9642" />
+
+<img width="2330" height="124" alt="image" src="https://github.com/user-attachments/assets/2e82204a-42e9-440b-b721-6869e6b1a963" />
 
 ---
 
@@ -218,12 +233,35 @@ Eftersom en NACL är **stateless** tillåts inte svarstrafik automatiskt. Både 
 
 | Riktning | Scenario | Vad regeln tillåter |
 |---|---|---|
-| **Inbound 1024–65535** | Webbservern initierar en anslutning ut, t.ex. för uppdateringar eller anrop till S3 | Svaret från den externa tjänsten når serverns tillfälliga port |
+| **Inbound 1024–65535** | Webbservern själv ansluter till en extern tjänst, till exempel för att hämta uppdateringar eller läsa från S3 | Svaret från den externa tjänsten når serverns tillfälliga port |
 | **Outbound 1024–65535** | En klient ansluter in till webbservern på port 80, 443 eller 22 | Serverns svar når klientens tillfälliga port |
 
 > [!NOTE]
 > Svar på SSH-anslutningar (port 22) skickas också till klientens tillfälliga port och täcks därför av den utgående regeln 120.
 
+### Verifiering
+
+Inbound rules
+
+<img width="1604" height="228" alt="inboundrules" src="https://github.com/user-attachments/assets/2b252bda-9597-45c7-87d0-b7cb5264a9e2" />
+
+Outbound rules
+
+<img width="1826" height="282" alt="outboundrules" src="https://github.com/user-attachments/assets/2094b3ff-97e7-4129-aab1-d6fd3ac64bcf" />
+
+### SSH test
+
+Lyckad inloggning 
+<img width="920" height="72" alt="inloggssh" src="https://github.com/user-attachments/assets/f377bd18-2ebe-4f7d-8597-143bd6b4ed66" />
+
+Nekad åtkomst via mobilnät
+<img width="1322" height="110" alt="sshmobilnät" src="https://github.com/user-attachments/assets/31e56aab-046b-4ae2-870f-e2ddadc84f10" />
+
 ### Subnet association
 
 NACL:en kopplades till `novatrix-public` så att reglerna gäller för det publika subnätet.
+
+<img width="2054" height="236" alt="image" src="https://github.com/user-attachments/assets/3acfc9aa-5f2d-420b-b502-91f49a148a67" />
+
+---
+
