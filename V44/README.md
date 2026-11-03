@@ -152,7 +152,8 @@ En Security Group skapades via EC2 och kopplades till `novatrix-vpc`.
 
 ### Verifiering
 
-<img width="2210" height="104" alt="Skärmbild 2026-11-03 214722" src="https://github.com/user-attachments/assets/714d4aec-3922-4ee8-9d10-1c06420489e4" />
+<img width="2138" height="56" alt="image" src="https://github.com/user-attachments/assets/5180aa15-29a8-4259-a47f-d9bd9a098ddf" />
+
 
 <img width="2030" height="282" alt="Skärmbild 2026-11-03 220144" src="https://github.com/user-attachments/assets/51bf3bff-f157-4a73-9d43-c8da2ebc8997" />
 
