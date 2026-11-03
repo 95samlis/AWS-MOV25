@@ -1,6 +1,6 @@
 ## V43 – IAM och identitet
 
-**SAMUEL LISSBRO** Mitt repo:https://github.com/95samlis/AWS-MOV25/tree/main
+**SAMUEL LISSBRO**
 
 ### Syfte 
 
