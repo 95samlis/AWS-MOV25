@@ -85,7 +85,7 @@ Under Additional configuration:
 
 Här syns att databasen ligger i rätt VPC och privata subnet group, använder rätt Security Group och inte är publikt åtkomlig. Endpoint och port 3306 visas också.
 
-<img width="1000" height="150" alt="Skärmbild 2026-11-04 191253" src="https://github.com/user-attachments/assets/4db1b08d-6850-46dc-baae-0d6d63b46894" />
+<img width="600" height="150" alt="Skärmbild 2026-11-04 191253" src="https://github.com/user-attachments/assets/4db1b08d-6850-46dc-baae-0d6d63b46894" />
 
 
 Kontroll av backup
