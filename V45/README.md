@@ -83,9 +83,14 @@ Under Additional configuration:
 
 <img width="2284" height="164" alt="Skärmbild 2026-11-04 173757" src="https://github.com/user-attachments/assets/23f644f5-abed-488c-953a-a8c1fe95c55f" />
 
-Här kontrolleras att databasen använder rätt DB subnet group och Security Group.
+Här syns att databasen ligger i rätt VPC och privata subnet group, använder rätt Security Group och inte är publikt åtkomlig. Endpoint och port 3306 visas också.
 
-<img width="1000" height="400" alt="Skärmbild 2026-11-04 190106" src="https://github.com/user-attachments/assets/74688cab-af7f-43f1-b28d-4f6c4ab261f6" />
+<img width="1200" height="330" alt="Skärmbild 2026-11-04 191253" src="https://github.com/user-attachments/assets/4db1b08d-6850-46dc-baae-0d6d63b46894" />
+
+
+Kontroll av backup
+
+<img width="1290" height="294" alt="image" src="https://github.com/user-attachments/assets/35b79ade-794f-4d73-aeba-b55325277a9f" />
 
 
 ---
