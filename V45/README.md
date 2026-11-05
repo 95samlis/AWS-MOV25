@@ -171,7 +171,7 @@ Jag testar sedan monteringen genom att köra `sudo umount`, följt av `sudo moun
 ### Verifiering
 
 EFS är monterat och visas som ett tillgängligt filsystem på `/var/www/html/wp-content`.
-<img width="1080" height="98" alt="Skärmbild 2026-11-04 230234" src="https://github.com/user-attachments/assets/76b1cc12-d671-43f7-be83-9e8da9608abc" />
+<img width="800" height="70" alt="Skärmbild 2026-11-04 230234" src="https://github.com/user-attachments/assets/76b1cc12-d671-43f7-be83-9e8da9608abc" />
 
 ---
 
@@ -183,11 +183,11 @@ I bucketen skapar jag även mappen `backup`, där databasens säkerhetskopior sk
 
 ### Verifiering
 
-<img width="1332" height="148" alt="image" src="https://github.com/user-attachments/assets/c8d3d108-3c98-4d8c-a833-c3600aa6f11e" />
+<img width="800" height="100" alt="image" src="https://github.com/user-attachments/assets/c8d3d108-3c98-4d8c-a833-c3600aa6f11e" />
 
 public access är blockerat 
 
-<img width="840" height="138" alt="image" src="https://github.com/user-attachments/assets/d95eeee6-43de-4a45-a93a-6162a3747b01" />
+<img width="600" height="100" alt="image" src="https://github.com/user-attachments/assets/d95eeee6-43de-4a45-a93a-6162a3747b01" />
 
 
 ---
