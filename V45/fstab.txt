@@ -1,0 +1,3 @@
+# Line for /etc/fstab on every boot. Replace fs-id with your file system id (fs-...).
+# _netdev: wait for the network, noresvport: reconnect quickly, tls: encrypt traffic to EFS.
+fs-04f55577503f498f4:/ /var/www/html/wp-content efs _netdev,noresvport,tls 0 0
