@@ -153,6 +153,11 @@ Båda Mount Targets använder Security Group `novatrix-efs-sg`.
 <img width="1926" height="132" alt="Skärmbild 2026-11-04 220132" src="https://github.com/user-attachments/assets/877cbd2f-3e84-4578-aeb2-8e03a8b1bf64" />
 
 
+Bilden visar i CloudTrail att två Mount Targets skapades.
+<img width="2698" height="348" alt="image" src="https://github.com/user-attachments/assets/5aa510e2-ca67-464b-b023-6c21696240bd" />
+
+
+
 ---
 
 ## Montera EFS på webbservern
@@ -348,6 +353,35 @@ När anslutningen var klar kunde WordPress använda RDS för att lagra webbplats
 
 <img width="616" height="916" alt="testsida resulat3" src="https://github.com/user-attachments/assets/79a08f02-02c8-49dd-a51a-9625b3931ef3" />
 
+## Verifiering av WordPress mot EFS
+
+För att verifiera att WordPress använder EFS laddade jag upp en bild via WordPress Media Library.
+
+Därefter kontrollerade jag via terminalen att bilden sparades i `/var/www/html/wp-content/uploads/`.
+
+Eftersom `wp-content` är monterad mot EFS lagras WordPress uppladdade bilder på den delade lagringen.
+
+### Verifiering
+
+#### 1. WordPress Media Library
+
+Visar den uppladdade bilden i WordPress.
+
+<img width="644" height="358" alt="image" src="https://github.com/user-attachments/assets/5ac15c7c-a2c2-464c-84a2-d2eccf6ee2b3" />
+
+#### 2. Terminal
+
+Jag använde följande kommando för att kontrollera att bilden sparats i uppladdningsmappen:
+
+```bash
+sudo find /var/www/html/wp-content/uploads -type f
+```
+
+Resultatet visar den uppladdade bilden och dess automatiskt skapade bildvarianter.
+
+<img width="1516" height="410" alt="Verifiering av WordPress-bilder på EFS" src="https://github.com/user-attachments/assets/6563c5c6-9a38-445f-a8f9-5d82da177193" />
+
+
 ---
 
 ## IAM-roll för uppladdning av backup till S3
@@ -384,5 +418,21 @@ Backup uppladdad till S3
 
 <img width="2578" height="134" alt="backup resultat2" src="https://github.com/user-attachments/assets/d9c30502-03fa-4ff4-85f4-6df825858408" />
 
+---
+
+## Arkitektur – sammanfattning
+
+Min WordPress-webbplats använder fyra AWS-tjänster som arbetar tillsammans.
+
+- **EC2** (`novatrix-web`): Här körs WordPress och webbservern.
+- **RDS** (`novatrix-db`): Här sparas WordPress databas. Databasen ligger i privata subnät.
+- **EFS** (`novatrix-efs`): Här sparas WordPress uppladdade bilder och filer. EFS är kopplat till webbservern.
+- **S3** (`novatrix-backup-95samlis-01`): Här sparas databasbackuper. Backuper tas bort automatiskt efter 14 dagar.
+
+Jag använder IAM för att ge EC2-servern tillåtelse att ladda upp backuper till S3.
+
+Åtkomsten skyddas med Security Groups. Webbservern får ansluta till databasen och EFS, men databasen är inte öppen för allmänheten.
+
+RDS har automatisk backup med 1 dags lagringstid.
 
 
