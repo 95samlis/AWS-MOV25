@@ -1,18 +1,32 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: Novatrix database and storage infrastructure
+# Outputs share values with other stacks (use !ImportValue).
+Outputs:
+  VPCId:
+    Description: ID of the Novatrix VPC
+    Value: !Ref NovatrixVPC
+    Export:
+      Name: novatrix-vpc-id
 
-Resources:
-  # Tells RDS which subnets the database can use.
-  DatabaseSubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: Private subnets for Novatrix database
-      DBSubnetGroupName: novatrix-db-subnets
-      # Two private subnets in different zones (RDS needs at least two).
-      # The IDs come from the network stack.
-      SubnetIds:
-        - !ImportValue novatrix-private-subnet-a-id
-        - !ImportValue novatrix-private-subnet-b-id
-      Tags:
-        - Key: Name
-          Value: novatrix-db-subnets
+  PublicSubnetId:
+    Description: ID of the public subnet
+    Value: !Ref PublicSubnet
+    Export:
+      Name: novatrix-public-subnet-id
+
+  PrivateSubnetAId:
+    Description: ID of private subnet A
+    Value: !Ref PrivateSubnetA
+    Export:
+      Name: novatrix-private-subnet-a-id
+
+  PrivateSubnetBId:
+    Description: ID of private subnet B
+    Value: !Ref PrivateSubnetB
+    Export:
+      Name: novatrix-private-subnet-b-id
+
+  # Lets other stacks use the web security group (e.g. for the EC2 server).
+  WebSecurityGroupId:
+    Description: ID of the web server security group
+    Value: !Ref WebSecurityGroup
+    Export:
+      Name: novatrix-web-sg-id
