@@ -91,7 +91,6 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
 
   # A security group is a firewall for the web server.
-  # It has no rules yet, so inbound traffic is blocked for now.
   WebSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -101,6 +100,36 @@ Resources:
       Tags:
         - Key: Name
           Value: novatrix-web-sg
+
+  # Allow web traffic (HTTP) from anywhere.
+  WebInboundHTTP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref WebSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+  # Allow secure web traffic (HTTPS) from anywhere.
+  WebInboundHTTPS:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref WebSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+
+  # Allow SSH only from one IP address (/32 = just this address).
+  WebInboundSSH:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref WebSecurityGroup
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 81.226.253.57/32
 
   # A Network ACL is a firewall for the whole subnet.
   # Anything not allowed by a rule below is blocked.
