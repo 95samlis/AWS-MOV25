@@ -1,32 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Novatrix database and storage infrastructure
+
+Resources:
+  # Tells RDS which subnets the database can use.
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private subnets for Novatrix database
+      DBSubnetGroupName: novatrix-db-subnets
+      # Two private subnets in different zones (RDS needs at least two).
+      # The IDs come from the network stack.
+      SubnetIds:
+        - !ImportValue novatrix-private-subnet-a-id
+        - !ImportValue novatrix-private-subnet-b-id
+      Tags:
+        - Key: Name
+          Value: novatrix-db-subnets
+
+  # Firewall for the database.
+  # Only the web server can connect, on the MySQL port (3306).
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Novatrix database
+      GroupName: novatrix-db-sg
+      VpcId: !ImportValue novatrix-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !ImportValue novatrix-web-sg-id
+      Tags:
+        - Key: Name
+          Value: novatrix-db-sg
+
+  # Firewall for EFS (shared file storage).
+  # Only the web server can connect, on the NFS port (2049).
+  EFSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Novatrix EFS
+      GroupName: novatrix-efs-sg
+      VpcId: !ImportValue novatrix-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 2049
+          ToPort: 2049
+          SourceSecurityGroupId: !ImportValue novatrix-web-sg-id
+      Tags:
+        - Key: Name
+          Value: novatrix-efs-sg
+
 # Outputs share values with other stacks (use !ImportValue).
 Outputs:
-  VPCId:
-    Description: ID of the Novatrix VPC
-    Value: !Ref NovatrixVPC
+  DatabaseSecurityGroupId:
+    Description: ID of the database security group
+    Value: !Ref DatabaseSecurityGroup
     Export:
-      Name: novatrix-vpc-id
+      Name: novatrix-db-sg-id
 
-  PublicSubnetId:
-    Description: ID of the public subnet
-    Value: !Ref PublicSubnet
+  EFSSecurityGroupId:
+    Description: ID of the EFS security group
+    Value: !Ref EFSSecurityGroup
     Export:
-      Name: novatrix-public-subnet-id
-
-  PrivateSubnetAId:
-    Description: ID of private subnet A
-    Value: !Ref PrivateSubnetA
-    Export:
-      Name: novatrix-private-subnet-a-id
-
-  PrivateSubnetBId:
-    Description: ID of private subnet B
-    Value: !Ref PrivateSubnetB
-    Export:
-      Name: novatrix-private-subnet-b-id
-
-  # Lets other stacks use the web security group (e.g. for the EC2 server).
-  WebSecurityGroupId:
-    Description: ID of the web server security group
-    Value: !Ref WebSecurityGroup
-    Export:
-      Name: novatrix-web-sg-id
+      Name: novatrix-efs-sg-id
