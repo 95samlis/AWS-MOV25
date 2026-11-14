@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Novatrix network infrastructure
 
 Resources:
+  # The VPC is our own private network in AWS.
   NovatrixVPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -12,6 +13,7 @@ Resources:
         - Key: Name
           Value: novatrix-vpc
 
+  # Public subnet: can be reached from the internet.
   PublicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -24,6 +26,7 @@ Resources:
           Value: novatrix-public
 
   # RDS needs a subnet in each of at least two Availability Zones.
+  # Private subnet A: not reachable from the internet.
   PrivateSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -35,6 +38,7 @@ Resources:
         - Key: Name
           Value: novatrix-private-a
 
+  # Private subnet B: same idea, but in a different zone (b).
   PrivateSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
@@ -45,3 +49,19 @@ Resources:
       Tags:
         - Key: Name
           Value: novatrix-private-b
+
+  # The Internet Gateway is the "door" between our VPC and the internet.
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: novatrix-igw
+
+  # This connects the Internet Gateway to our VPC.
+  # Without it, the gateway exists but is not used.
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref NovatrixVPC
+      InternetGatewayId: !Ref InternetGateway
