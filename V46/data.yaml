@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Novatrix database and storage infrastructure
+
+Resources:
+  # Tells RDS which subnets the database can use.
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private subnets for Novatrix database
+      DBSubnetGroupName: novatrix-db-subnets
+      # Two private subnets in different zones (RDS needs at least two).
+      # The IDs come from the network stack.
+      SubnetIds:
+        - !ImportValue novatrix-private-subnet-a-id
+        - !ImportValue novatrix-private-subnet-b-id
+      Tags:
+        - Key: Name
+          Value: novatrix-db-subnets
