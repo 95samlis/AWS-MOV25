@@ -90,6 +90,30 @@ Resources:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref PublicRouteTable
 
+  # Private route table: local VPC traffic only.
+  # It has no route to the internet. AWS adds the local route automatically.
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NovatrixVPC
+      Tags:
+        - Key: Name
+          Value: novatrix-private-rt
+
+  # Links the private route table to private subnet A.
+  PrivateSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref PrivateRouteTable
+
+  # Links the private route table to private subnet B.
+  PrivateSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetB
+      RouteTableId: !Ref PrivateRouteTable
+
   # A security group is a firewall for the web server.
   WebSecurityGroup:
     Type: AWS::EC2::SecurityGroup
