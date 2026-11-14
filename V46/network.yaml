@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Novatrix network infrastructure
+
+Resources:
+  NovatrixVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: novatrix-vpc
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref NovatrixVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: eu-north-1a
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: novatrix-public
+
+  # RDS needs a subnet in each of at least two Availability Zones.
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref NovatrixVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: eu-north-1a
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: novatrix-private-a
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref NovatrixVPC
+      CidrBlock: 10.0.4.0/24
+      AvailabilityZone: eu-north-1b
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: novatrix-private-b
