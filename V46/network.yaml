@@ -59,9 +59,35 @@ Resources:
           Value: novatrix-igw
 
   # This connects the Internet Gateway to our VPC.
-  # Without it, the gateway exists but is not used.
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref NovatrixVPC
       InternetGatewayId: !Ref InternetGateway
+
+  # A route table is a list of rules that say where network traffic goes.
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NovatrixVPC
+      Tags:
+        - Key: Name
+          Value: novatrix-public-rt
+
+  # This rule sends all internet traffic (0.0.0.0/0) to the Internet Gateway.
+  # DependsOn makes sure the gateway is attached to the VPC first.
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  # This links the route table to the public subnet.
+  # Now the public subnet can really reach the internet.
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
