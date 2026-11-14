@@ -74,8 +74,7 @@ Resources:
         - Key: Name
           Value: novatrix-public-rt
 
-  # This rule sends all internet traffic (0.0.0.0/0) to the Internet Gateway.
-  # DependsOn makes sure the gateway is attached to the VPC first.
+  # Sends all internet traffic (0.0.0.0/0) to the Internet Gateway.
   PublicRoute:
     Type: AWS::EC2::Route
     DependsOn: AttachGateway
@@ -84,31 +83,39 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  # This links the route table to the public subnet.
+  # Links the route table to the public subnet.
   PublicSubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref PublicRouteTable
 
-# Outputs share values with other stacks.
-# Other stacks can read them with !ImportValue and the export name.
+  # A security group is a firewall for the web server.
+  # It has no rules yet, so inbound traffic is blocked for now.
+  WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Novatrix web server
+      GroupName: novatrix-web-sg
+      VpcId: !Ref NovatrixVPC
+      Tags:
+        - Key: Name
+          Value: novatrix-web-sg
+
+# Outputs share values with other stacks (use !ImportValue).
 Outputs:
-  # The ID of the VPC. Other stacks need it to create security groups, etc.
   VPCId:
     Description: ID of the Novatrix VPC
     Value: !Ref NovatrixVPC
     Export:
       Name: novatrix-vpc-id
 
-  # The ID of the public subnet. Use it for web servers or load balancers.
   PublicSubnetId:
     Description: ID of the public subnet
     Value: !Ref PublicSubnet
     Export:
       Name: novatrix-public-subnet-id
 
-  # The IDs of the two private subnets. Use them for RDS (needs two zones).
   PrivateSubnetAId:
     Description: ID of private subnet A
     Value: !Ref PrivateSubnetA
