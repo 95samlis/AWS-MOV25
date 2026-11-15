@@ -26,7 +26,6 @@ Resources:
       GroupName: novatrix-db-sg
       # The VPC ID comes from the network stack.
       VpcId: !ImportValue novatrix-vpc-id
-      # Allow traffic only from the web server's security group.
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 3306
@@ -84,25 +83,40 @@ Resources:
       SecurityGroups:
         - !Ref EFSSecurityGroup
 
+  # The MariaDB database for WordPress.
+  NovatrixDatabase:
+    Type: AWS::RDS::DBInstance
+    # If the stack is deleted, AWS takes a snapshot first.
+    DeletionPolicy: Snapshot
+    # Also take a snapshot if an update replaces the database.
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: novatrix-db
+      # Database type and version
+      Engine: mariadb
+      EngineVersion: '11.4.7'
+      # Small and cheap server size (Free Tier)
+      DBInstanceClass: db.t3.micro
+      # Disk size in GB and disk type
+      AllocatedStorage: '20'
+      StorageType: gp2
+      # WordPress database that is created at start
+      DBName: Wordpress
+      # AWS creates the password and stores it in Secrets Manager.
+      # No password is written in this file.
+      MasterUsername: admin
+      ManageMasterUserPassword: true
+      # Place the database in the private subnets
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      # Only the web server can connect (via the database security group)
+      VPCSecurityGroups:
+        - !Ref DatabaseSecurityGroup
+      # No access from the internet
+      PubliclyAccessible: false
+      Port: 3306
+      # Keep automatic backups for 1 day
+      BackupRetentionPeriod: 1
+
 # Outputs share values with other stacks (use !ImportValue).
 Outputs:
-  # Lets other stacks use the database security group.
-  DatabaseSecurityGroupId:
-    Description: ID of the database security group
-    Value: !Ref DatabaseSecurityGroup
-    Export:
-      Name: novatrix-db-sg-id
-
-  # Lets other stacks use the EFS security group.
-  EFSSecurityGroupId:
-    Description: ID of the EFS security group
-    Value: !Ref EFSSecurityGroup
-    Export:
-      Name: novatrix-efs-sg-id
-
-  # Lets other stacks mount the file system (e.g. the web server).
-  EFSFileSystemId:
-    Description: ID of the Novatrix EFS file system
-    Value: !Ref NovatrixEFS
-    Export:
-      Name: novatrix-efs-id
+  # Lets other stacks use the
