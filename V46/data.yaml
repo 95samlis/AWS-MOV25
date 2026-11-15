@@ -24,7 +24,6 @@ Resources:
     Properties:
       GroupDescription: Security group for Novatrix database
       GroupName: novatrix-db-sg
-      # The VPC ID comes from the network stack.
       VpcId: !ImportValue novatrix-vpc-id
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -84,6 +83,7 @@ Resources:
         - !Ref EFSSecurityGroup
 
   # The MariaDB database for WordPress.
+  # It is restored from our V45 snapshot, so all data comes back.
   NovatrixDatabase:
     Type: AWS::RDS::DBInstance
     # If the stack is deleted, AWS takes a snapshot first.
@@ -92,20 +92,11 @@ Resources:
     UpdateReplacePolicy: Snapshot
     Properties:
       DBInstanceIdentifier: novatrix-db
-      # Database type and version
-      Engine: mariadb
-      EngineVersion: '11.4.7'
+      # Restore from the existing snapshot.
+      # Engine, storage, database name, user and password come from it.
+      DBSnapshotIdentifier: novatrix-db-v45-backup
       # Small and cheap server size (Free Tier)
       DBInstanceClass: db.t3.micro
-      # Disk size in GB and disk type
-      AllocatedStorage: '20'
-      StorageType: gp2
-      # WordPress database that is created at start
-      DBName: Wordpress
-      # AWS creates the password and stores it in Secrets Manager.
-      # No password is written in this file.
-      MasterUsername: admin
-      ManageMasterUserPassword: true
       # Place the database in the private subnets
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
       # Only the web server can connect (via the database security group)
@@ -113,10 +104,42 @@ Resources:
         - !Ref DatabaseSecurityGroup
       # No access from the internet
       PubliclyAccessible: false
-      Port: 3306
       # Keep automatic backups for 1 day
       BackupRetentionPeriod: 1
 
 # Outputs share values with other stacks (use !ImportValue).
 Outputs:
-  # Lets other stacks use the
+  # Lets other stacks use the database security group.
+  DatabaseSecurityGroupId:
+    Description: ID of the database security group
+    Value: !Ref DatabaseSecurityGroup
+    Export:
+      Name: novatrix-db-sg-id
+
+  # Lets other stacks use the EFS security group.
+  EFSSecurityGroupId:
+    Description: ID of the EFS security group
+    Value: !Ref EFSSecurityGroup
+    Export:
+      Name: novatrix-efs-sg-id
+
+  # Lets other stacks mount the file system (e.g. the web server).
+  EFSFileSystemId:
+    Description: ID of the Novatrix EFS file system
+    Value: !Ref NovatrixEFS
+    Export:
+      Name: novatrix-efs-id
+
+  # The address WordPress uses to connect to the database.
+  DatabaseEndpoint:
+    Description: RDS database endpoint
+    Value: !GetAtt NovatrixDatabase.Endpoint.Address
+    Export:
+      Name: novatrix-db-endpoint
+
+  # The database port.
+  DatabasePort:
+    Description: RDS database port
+    Value: !GetAtt NovatrixDatabase.Endpoint.Port
+    Export:
+      Name: novatrix-db-port
