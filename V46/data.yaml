@@ -24,7 +24,9 @@ Resources:
     Properties:
       GroupDescription: Security group for Novatrix database
       GroupName: novatrix-db-sg
+      # The VPC ID comes from the network stack.
       VpcId: !ImportValue novatrix-vpc-id
+      # Allow traffic only from the web server's security group.
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 3306
@@ -51,16 +53,56 @@ Resources:
         - Key: Name
           Value: novatrix-efs-sg
 
+  # The shared file system (EFS). Many servers can use it at the same time.
+  NovatrixEFS:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      # Data is encrypted on disk.
+      Encrypted: true
+      PerformanceMode: generalPurpose
+      # Speed grows with the amount of data stored.
+      ThroughputMode: bursting
+      FileSystemTags:
+        - Key: Name
+          Value: novatrix-efs
+
+  # The "door" to EFS in private subnet A.
+  EFSMountTargetA:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref NovatrixEFS
+      SubnetId: !ImportValue novatrix-private-subnet-a-id
+      SecurityGroups:
+        - !Ref EFSSecurityGroup
+
+  # The same, in private subnet B (a different zone).
+  EFSMountTargetB:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref NovatrixEFS
+      SubnetId: !ImportValue novatrix-private-subnet-b-id
+      SecurityGroups:
+        - !Ref EFSSecurityGroup
+
 # Outputs share values with other stacks (use !ImportValue).
 Outputs:
+  # Lets other stacks use the database security group.
   DatabaseSecurityGroupId:
     Description: ID of the database security group
     Value: !Ref DatabaseSecurityGroup
     Export:
       Name: novatrix-db-sg-id
 
+  # Lets other stacks use the EFS security group.
   EFSSecurityGroupId:
     Description: ID of the EFS security group
     Value: !Ref EFSSecurityGroup
     Export:
       Name: novatrix-efs-sg-id
+
+  # Lets other stacks mount the file system (e.g. the web server).
+  EFSFileSystemId:
+    Description: ID of the Novatrix EFS file system
+    Value: !Ref NovatrixEFS
+    Export:
+      Name: novatrix-efs-id
