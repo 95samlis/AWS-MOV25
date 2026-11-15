@@ -54,7 +54,7 @@ Den uppdaterade stacken fick statusen `UPDATE_COMPLETE`. Samtliga 27 resurser vi
 
 ---
 
-## Steg 2. Data – Databas och lagring
+## Steg 2 Data – Databas och lagring
 
 I detta steg skapade jag en databas och en lagringsyta med CloudFormation. Jag använde filen `data.yaml`.
 
@@ -103,3 +103,124 @@ Vid första försöket misslyckades skapandet av Data-stacken. En gammal DB Subn
 Jag kontrollerade den gamla gruppen och såg att den inte längre behövdes. Jag tog bort den och försökte skapa Data-stacken igen.
 
 Det andra försöket lyckades.
+
+---
+
+## steg 3 - Webbserver
+
+### Återskapa webbservern från backup
+
+Jag använde min tidigare AMI-backup från V45 för att återskapa webbservern.
+
+- AMI: `novatrix-web-v45-backup`
+- AMI-ID: `ami-06d456b5d1e648906`
+
+Jag skapade en ny EC2-instans med CloudFormation och filen `webb.yaml`.
+
+### Inställningar
+
+| Inställning | Värde |
+|---|---|
+| Instansnamn | `novatrix-web` |
+| Instanstyp | `t3.micro` |
+| AMI | `novatrix-web-v45-backup` |
+| Nyckelpar | `nova-key` |
+| VPC | `novatrix-vpc` (den nya V46-VPC:n) |
+| Subnät | Public Subnet |
+| Säkerhetsgrupp | `novatrix-web-sg` |
+
+### Verifiering
+
+<img width="1916" height="122" alt="image" src="https://github.com/user-attachments/assets/81f9c8c7-97b1-45db-8998-4ad4127bbdf6" />
+
+---
+## Kontroll av webbservern
+
+När webbservern var skapad anslöt jag till den via SSH.
+Jag kontrollerade att Apache och PHP-FPM var igång:
+
+```bash
+sudo systemctl status httpd
+sudo systemctl status php-fpm
+```
+
+Båda tjänsterna visade `active (running)`.
+Jag kontrollerade också att WordPress-filerna fanns i `/var/www/html/`.
+
+### Kontroll av databasanslutningen
+
+Jag testade att webbservern kunde ansluta till databasen i RDS.
+
+```bash
+mysql -h novatrix-db.cxmeyaio0zvp.eu-north-1.rds.amazonaws.com -u admin -p -D Wordpress -e "SELECT 1;"
+```
+
+Testet lyckades och visade resultatet `1`.
+
+### Montera EFS
+
+Efter att webbservern skapats upptäckte jag att EFS inte var monterat.
+Jag monterade därför EFS på WordPress-mappen `wp-content`.
+
+```bash
+sudo mount -t efs -o tls fs-054c6d4ac5a6b8771:/ /var/www/html/wp-content
+```
+
+Jag kontrollerade att monteringen fungerade med:
+
+```bash
+df -h
+```
+
+EFS visades på rätt plats.
+
+### Skapa mappar och installera temat
+
+När EFS var monterat upptäckte jag att det var tomt. Jag skapade därför mapparna för teman, tillägg och bilder.
+
+```bash
+sudo mkdir -p /var/www/html/wp-content/{themes,plugins,uploads}
+```
+
+Databasen visade att WordPress använde temat Twenty Twenty-Five. Jag laddade ner temat:
+
+```bash
+cd /tmp
+wget https://downloads.wordpress.org/theme/twentytwentyfive.zip
+```
+
+Sedan packade jag upp temat i EFS:
+
+```bash
+sudo unzip /tmp/twentytwentyfive.zip -d /var/www/html/wp-content/themes/
+```
+
+Jag ändrade även ägarskapet så att Apache kunde använda filerna:
+
+```bash
+sudo chown -R apache:apache /var/www/html/wp-content/
+```
+
+### Ändra WordPress-adressen
+
+Efter återställningen använde WordPress fortfarande den gamla webbserverns IP-adress.
+Jag ändrade därför adressen till den nya webbserverns publika IP-adress `16.171.58.15`.
+
+```bash
+sudo -u apache php -r 'require "/var/www/html/wp-load.php"; update_option("siteurl","http://16.171.58.15"); update_option("home","http://16.171.58.15");'
+```
+
+### Resultat
+
+WordPress fungerade nu med den nya webbservern, den återställda databasen och EFS.
+Jag kunde logga in på WordPress och komma åt administrationspanelen.
+
+<img width="1632" height="576" alt="image" src="https://github.com/user-attachments/assets/45bd1d5b-8e34-4acf-8bd0-63ec0340527b" />
+
+
+### Verifiering
+
+Bilden visar att båda tidigare WordPress-inläggen finns kvar efter återställningen.
+
+<img width="2886" height="368" alt="image" src="https://github.com/user-attachments/assets/af6db0df-1978-4d17-831a-2b2014377d71" />
+
