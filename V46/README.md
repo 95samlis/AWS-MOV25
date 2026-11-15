@@ -6,13 +6,13 @@ Mitt Repo: https://github.com/95samlis/AWS-MOV25/tree/main
 
 ### Syfte 
 
-Syftet med uppgiften är att använda Infrastructure as Code (IaC) med AWS CloudFormation för att automatisera skapandet av Novatrix AB:s infrastruktur. Genom att skriva templates och versionshantera dem i GitHub ska miljön kunna återskapas på ett enkelt, effektivt och reproducerbart sätt.
+Syftet med uppgiften är att använda Infrastructure as Code med AWS CloudFormation för att automatisera skapandet av Novatrix AB:s infrastruktur. Genom att skriva templates och versionshantera dem i GitHub ska miljön kunna återskapas på ett enkelt, effektivt och reproducerbart sätt.
 
 ---
 
 ## Steg 1 – Nätverk med CloudFormation
 
-Jag skapade en CloudFormation-template (`network.yaml`) för att automatisera skapandet av nätverket i AWS.
+Jag skapade en CloudFormation-template (`network.yaml`) för att automatisera skapandet av nätverksinfrastrukturen i AWS.
 
 ### Templaten innehåller
 
@@ -20,8 +20,11 @@ Jag skapade en CloudFormation-template (`network.yaml`) för att automatisera sk
 - Ett **publikt subnät** (`10.0.1.0/24`).
 - Två **privata subnät** (`10.0.2.0/24` och `10.0.4.0/24`) i olika Availability Zones.
 - En **Internet Gateway** kopplad till VPC.
-- En **Route Table** som ger det publika subnätet tillgång till internet.
-- **Outputs** som gör att andra CloudFormation-stackar kan använda VPC:ns och subnätens ID.
+- En **publik Route Table** med internetroute.
+- En **privat Route Table** med lokal trafik inom VPC.
+- En **Security Group** för webbservern med regler för HTTP, HTTPS och SSH.
+- En **Network ACL** för det publika subnätet med inkommande och utgående regler.
+- **Outputs** som gör att andra CloudFormation-stackar kan använda ID för VPC, subnät och webbserverns Security Group.
 
 ### Validering av template
 
@@ -33,34 +36,18 @@ aws cloudformation validate-template --template-body file://network.yaml
 
 AWS kunde läsa templaten utan att visa några fel.
 
-### Skapa CloudFormation-stack
+### Skapa och uppdatera CloudFormation-stack
 
-Efter valideringen skapade jag en CloudFormation-stack med namnet `novatrix-natverk`:
+Jag skapade först en CloudFormation-stack med namnet `novatrix-natverk`. Den första versionen skapade nätverkets grundläggande resurser.
 
-```bash
-aws cloudformation create-stack \
-  --stack-name novatrix-natverk \
-  --template-body file://network.yaml
-```
+Därefter kompletterade jag `network.yaml` med Security Group, Network ACL och den privata route tabellen.
 
-Jag kontrollerade sedan stackens status med:
+Jag validerade den uppdaterade templaten och skapade ett Change Set med namnet `novatrix-natverk-update`. Efter granskning körde jag ändringarna på den befintliga stacken.
 
-```bash
-aws cloudformation describe-stacks \
-  --stack-name novatrix-natverk \
-  --query "Stacks[0].StackStatus"
-```
+### Verifikation
+
+Den uppdaterade stacken fick statusen `UPDATE_COMPLETE`. Samtliga 27 resurser visas med statusen `CREATE_COMPLETE` i CloudFormation.
 
 ### Resultat
 
-<img width="718" height="168" alt="Skärmbild 2026-11-14 211729" src="https://github.com/user-attachments/assets/9cec4c97-6f67-4631-9894-4cb361626ff1" />
-
-<img width="2010" height="150" alt="image" src="https://github.com/user-attachments/assets/64a363a6-804a-4c21-b406-a78981755480" />
-
-## Deployment och verifiering
-
-Jag skapade stacken `novatrix-natverk` via AWS CloudFormation. Stacken fick statusen `CREATE_COMPLETE` och samtliga 9 resurser skapades utan fel.
-
-### Resultat
-
-<img width="1530" height="1100" alt="Skärmbild 2026-11-14 212228" src="https://github.com/user-attachments/assets/c0fc682e-a5ee-49a2-bdb6-8c697399c206" />
+<img width="2018" height="480" alt="image" src="https://github.com/user-attachments/assets/d640393c-bcd5-440b-8d3c-bd7e2a0c481c" />
