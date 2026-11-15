@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Novatrix V46 - WordPress webbserver
+
+Resources:
+  NovatrixWeb:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-06d456b5d1e648906
+      InstanceType: t3.micro
+      KeyName: nova-key
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: '0'
+          SubnetId:
+            Fn::ImportValue: novatrix-public-subnet-id
+          GroupSet:
+            - Fn::ImportValue: novatrix-web-sg-id
+      Tags:
+        - Key: Name
+          Value: novatrix-web
+
+Outputs:
+  WebInstanceId:
+    Description: EC2 instance ID
+    Value: !Ref NovatrixWeb
+
+  WebPublicIp:
+    Description: Public IP address
+    Value: !GetAtt NovatrixWeb.PublicIp
