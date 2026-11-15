@@ -54,7 +54,7 @@ Den uppdaterade stacken fick statusen `UPDATE_COMPLETE`. Samtliga 27 resurser vi
 
 ---
 
-## Steg 2 Data – Databas och lagring
+## Steg 2 - Data – Databas och lagring
 
 I detta steg skapade jag en databas och en lagringsyta med CloudFormation. Jag använde filen `data.yaml`.
 
@@ -223,4 +223,30 @@ Jag kunde logga in på WordPress och komma åt administrationspanelen.
 Bilden visar att båda tidigare WordPress-inläggen finns kvar efter återställningen.
 
 <img width="2886" height="368" alt="image" src="https://github.com/user-attachments/assets/af6db0df-1978-4d17-831a-2b2014377d71" />
+
+---
+
+## Versionshantering
+
+Jag har sparat mina tre YAML-filer i GitHub och gjort commits när jag har ändrat något. I historiken kan man se vad som har lagts till och ändrats.
+
+Versionshantering gör det enklare att hitta fel och gå tillbaka till en tidigare version om något inte fungerar. Det gör också att andra kan se hur arbetet är uppbyggt och fortsätta utveckla det som redan har gjorts.
+
+Det blir även lättare att samarbeta eftersom alla kan utgå från samma version av filerna.
+
+---
+
+## Återskapa stacken
+
+För att återskapa infrastrukturen hämtar man CloudFormation-filerna från mitt GitHub-repo. Sedan skapar man stackarna i AWS i rätt ordning:
+
+1. `network.yaml` – skapar VPC, subnät och säkerhetsgrupper.
+2. `data.yaml` – skapar RDS-databasen och EFS-lagringen.
+3. `webb.yaml` – skapar EC2-instansen som kör WordPress.
+
+Filerna hänger ihop och använder värden från varandra. Därför måste nätverket skapas först, sedan databasen och lagringen och sist webbservern.
+
+Jag valde att använda min befintliga AMI och databassnapshot från V45. Det var en genväg för att slippa installera och konfigurera Apache, PHP och WordPress en gång till. På så sätt kunde jag lägga mer tid på att bygga infrastrukturen med CloudFormation.
+
+För att kunna återskapa allt behöver AMI, databassnapshoten och nyckelparet `nova-key` också finnas tillgängliga i AWS.
 
