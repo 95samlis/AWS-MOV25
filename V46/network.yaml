@@ -13,7 +13,7 @@ Resources:
         - Key: Name
           Value: novatrix-vpc
 
-  # Public subnet: can be reached from the internet.
+  # Public subnet A.
   PublicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -25,8 +25,22 @@ Resources:
         - Key: Name
           Value: novatrix-public
 
-  # RDS needs a subnet in each of at least two Availability Zones.
-  # Private subnet A: not reachable from the internet.
+  # v47: Second public subnet in Availability Zone B.
+  # An Application Load Balancer must span at least two AZs, so one
+  # public subnet is not enough anymore. 10.0.3.0/24 does not overlap
+  # with the other subnets (.1 = public A, .2 = private A, .4 = private B).
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref NovatrixVPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: eu-north-1b
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: novatrix-public-b
+
+  # Private subnet A.
   PrivateSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -38,7 +52,7 @@ Resources:
         - Key: Name
           Value: novatrix-private-a
 
-  # Private subnet B: same idea, but in a different zone (b).
+  # Private subnet B.
   PrivateSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
@@ -50,7 +64,7 @@ Resources:
         - Key: Name
           Value: novatrix-private-b
 
-  # The Internet Gateway is the "door" between our VPC and the internet.
+  # Internet Gateway.
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -58,14 +72,13 @@ Resources:
         - Key: Name
           Value: novatrix-igw
 
-  # This connects the Internet Gateway to our VPC.
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref NovatrixVPC
       InternetGatewayId: !Ref InternetGateway
 
-  # A route table is a list of rules that say where network traffic goes.
+  # Public route table.
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -74,7 +87,6 @@ Resources:
         - Key: Name
           Value: novatrix-public-rt
 
-  # Sends all internet traffic (0.0.0.0/0) to the Internet Gateway.
   PublicRoute:
     Type: AWS::EC2::Route
     DependsOn: AttachGateway
@@ -83,15 +95,23 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  # Links the route table to the public subnet.
+  # Connect both public subnets to the same route table.
   PublicSubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref PublicRouteTable
 
-  # Private route table: local VPC traffic only.
-  # It has no route to the internet. AWS adds the local route automatically.
+  # v47: Without this association PublicSubnetB would use the VPC's main
+  # route table and have no route to the internet, even though it is
+  # called "public". The ALB node in this subnet would not be reachable.
+  PublicSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+
+  # Private route table.
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -100,21 +120,44 @@ Resources:
         - Key: Name
           Value: novatrix-private-rt
 
-  # Links the private route table to private subnet A.
   PrivateSubnetARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PrivateSubnetA
       RouteTableId: !Ref PrivateRouteTable
 
-  # Links the private route table to private subnet B.
   PrivateSubnetBRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PrivateSubnetB
       RouteTableId: !Ref PrivateRouteTable
 
-  # A security group is a firewall for the web server.
+  # v47: Security group for the Application Load Balancer.
+  # The ALB is now the only public entry point for web traffic, so it is
+  # the one that accepts HTTP and HTTPS from the whole internet.
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Novatrix ALB
+      GroupName: novatrix-alb-sg
+      VpcId: !Ref NovatrixVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: novatrix-alb-sg
+
+  # Web server security group.
+  # The description is unchanged on purpose: changing GroupDescription
+  # forces a replacement, and a group with a custom GroupName cannot be
+  # replaced in an existing stack.
   WebSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -125,7 +168,12 @@ Resources:
         - Key: Name
           Value: novatrix-web-sg
 
-  # Allow web traffic (HTTP) from anywhere.
+  # v47: HTTP traffic is now only allowed from the ALB.
+  # Before this the rule used CidrIp 0.0.0.0/0. Referencing the ALB's
+  # security group instead means the web server can no longer be reached
+  # directly from the internet, only through the load balancer.
+  # HTTPS (443) is removed here: the ALB terminates it and talks HTTP
+  # to the web server inside the VPC.
   WebInboundHTTP:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -133,19 +181,9 @@ Resources:
       IpProtocol: tcp
       FromPort: 80
       ToPort: 80
-      CidrIp: 0.0.0.0/0
+      SourceSecurityGroupId: !Ref AlbSecurityGroup
 
-  # Allow secure web traffic (HTTPS) from anywhere.
-  WebInboundHTTPS:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref WebSecurityGroup
-      IpProtocol: tcp
-      FromPort: 443
-      ToPort: 443
-      CidrIp: 0.0.0.0/0
-
-  # Allow SSH only from one IP address (/32 = just this address).
+  # SSH only from your IP address.
   WebInboundSSH:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -155,8 +193,7 @@ Resources:
       ToPort: 22
       CidrIp: 81.226.253.57/32
 
-  # A Network ACL is a firewall for the whole subnet.
-  # Anything not allowed by a rule below is blocked.
+  # Public Network ACL.
   PublicNetworkAcl:
     Type: AWS::EC2::NetworkAcl
     Properties:
@@ -165,16 +202,24 @@ Resources:
         - Key: Name
           Value: novatrix-public-nacl
 
-  # Connects the Network ACL to the public subnet.
+  # Associate the same NACL with both public subnets.
   PublicNetworkAclAssociation:
-    Type: AWS::EC2::NetworkAclAssociation
+    Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       NetworkAclId: !Ref PublicNetworkAcl
       SubnetId: !Ref PublicSubnet
 
-  # --- Inbound rules ---
+  # v47: Puts the new subnet behind the same NACL rules as subnet A.
+  # Without it the subnet would use the VPC's default NACL, which
+  # allows everything and would bypass the rules below.
+  PublicSubnetBNaclAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref PublicNetworkAcl
+      SubnetId: !Ref PublicSubnetB
 
-  # Allow web traffic (HTTP) from anywhere.
+  # --- Inbound NACL rules ---
+
   PublicInboundHTTP:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -188,7 +233,6 @@ Resources:
         From: 80
         To: 80
 
-  # Allow secure web traffic (HTTPS) from anywhere.
   PublicInboundHTTPS:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -202,7 +246,6 @@ Resources:
         From: 443
         To: 443
 
-  # Allow SSH only from one IP address (/32 = just this address).
   PublicInboundSSH:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -216,7 +259,6 @@ Resources:
         From: 22
         To: 22
 
-  # Allow replies to connections the server started (ephemeral ports).
   PublicInboundEphemeral:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -230,9 +272,8 @@ Resources:
         From: 1024
         To: 65535
 
-  # --- Outbound rules ---
+  # --- Outbound NACL rules ---
 
-  # Allow the server to call out over HTTP (e.g. updates).
   PublicOutboundHTTP:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -246,7 +287,6 @@ Resources:
         From: 80
         To: 80
 
-  # Allow the server to call out over HTTPS.
   PublicOutboundHTTPS:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -260,7 +300,6 @@ Resources:
         From: 443
         To: 443
 
-  # Allow replies to users (ephemeral ports).
   PublicOutboundEphemeral:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -274,7 +313,6 @@ Resources:
         From: 1024
         To: 65535
 
-  # Allow the web server to reach the MySQL database inside the VPC.
   PublicOutboundMySQL:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -288,7 +326,6 @@ Resources:
         From: 3306
         To: 3306
 
-  # Allow the web server to reach shared storage (NFS/EFS) inside the VPC.
   PublicOutboundNFS:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -302,7 +339,7 @@ Resources:
         From: 2049
         To: 2049
 
-# Outputs share values with other stacks (use !ImportValue).
+# Outputs share values with other stacks.
 Outputs:
   VPCId:
     Description: ID of the Novatrix VPC
@@ -315,6 +352,14 @@ Outputs:
     Value: !Ref PublicSubnet
     Export:
       Name: novatrix-public-subnet-id
+
+  # v47: Second public subnet. The web stack imports this together with
+  # PublicSubnetId to place the load balancer in two AZs.
+  PublicSubnetBId:
+    Description: ID of public subnet B
+    Value: !Ref PublicSubnetB
+    Export:
+      Name: novatrix-public-b-subnet-id
 
   PrivateSubnetAId:
     Description: ID of private subnet A
@@ -333,3 +378,11 @@ Outputs:
     Value: !Ref WebSecurityGroup
     Export:
       Name: novatrix-web-sg-id
+
+  # v47: ALB security group, imported by the web stack when it creates
+  # the load balancer.
+  AlbSecurityGroupId:
+    Description: ID of the ALB security group
+    Value: !Ref AlbSecurityGroup
+    Export:
+      Name: novatrix-alb-sg-id
