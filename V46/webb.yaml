@@ -1,6 +1,19 @@
-
 AWSTemplateFormatVersion: '2010-09-09'
 
 Description: Novatrix V47 - Original web server removed
 
-Resources: {}
+Resources:
+  NovatrixWeb:
+    Type: AWS::EC2::Instance
+    DeletionPolicy: Retain
+    Properties:
+      ImageId: ami-06d456b5d1e648906
+      InstanceType: t3.micro
+      KeyName: nova-key
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: '0'
+          SubnetId:
+            Fn::ImportValue: novatrix-public-subnet-id
+          GroupSet:
+            - Fn::ImportValue: novatrix-web-sg-id
