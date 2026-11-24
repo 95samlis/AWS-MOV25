@@ -4,7 +4,7 @@ v47 – Skalbarhet och tillgänglighet
 
 ### Syfte
 
-Syftet är att göra Novatrix AB:s WordPress-lösning mer skalbar och tillgänglig i AWS. Med hjälp av Application Load Balancer och Auto Scaling ska lösningen kunna hantera varierande belastning och minska risken för driftavbrott genom att använda flera Availability Zones.
+Syftet är att göra Novatrix AB:s WordPress-lösning mer skalbar och tillgänglig i AWS. Med hjälp av en Load Balancer och Auto Scaling ska lösningen kunna hantera varierande belastning och minska risken för driftavbrott genom att använda flera Availability Zones.
 
 ---
 
@@ -154,11 +154,9 @@ Jag skapade en Auto Scaling Group med namnet `novatrix-web-asg`, kopplad till `n
 
 ## Test – Borttagning av originalservern
 
-### Syfte
 
 Verifiera att WordPress fortsätter fungera via Application Load Balancer efter att den ursprungliga EC2-instansen tagits bort.
 
-### Genomförande
 
 1. Kontrollerade att Target Group `novatrix-web-tg` hade två friska instanser.
 2. Kontrollerade att WordPress fungerade via ALB:s DNS-adress.
@@ -192,8 +190,104 @@ Testet visar att WordPress kan nås via Application Load Balancer och att Auto S
 
 ---
 
+## Test – Automatisk skalning vid hög belastning
 
 
+För att testa Auto Scaling startade jag ett belastningstest på båda webbservrarna. Testet belastade processorerna för att simulera hög trafik till webbplatsen.
+
+När CPU-belastningen steg över det inställda målet på 50 % reagerade AWS automatiskt. Auto Scaling ändrade önskat antal instanser från två till fyra och startade två nya EC2-instanser.
+
+### Verifiering
+
+<img width="2330" height="304" alt="Skärmbild 2026-11-24 191441" src="https://github.com/user-attachments/assets/c582fed9-5b9a-4c9c-917b-7d313793270c" />
 
 
+Testet visar att Auto Scaling fungerar och automatiskt kan öka antalet webbservrar vid hög belastning. Lösningen kan därmed hantera fler samtidiga besökare genom att starta fler instanser vid behov.
 
+
+---
+
+## Kostnadsberäkning – normal och hög belastning
+
+Jag använde AWS Pricing Calculator för att räkna ut ungefär vad lösningen kostar per månad. Jag valde regionen Europe (Stockholm).
+
+**Mina antaganden:**
+
+- Region: Europe (Stockholm), eu-north-1.
+- EC2: `t3.micro` Servrarna är igång 24/7, hela månaden.
+- Normal belastning: Två EC2-instanser.
+- Hög belastning: Fyra EC2-instanser.
+- Trafik: 100 GB per månad genom lastbalanseraren.
+- Lagring: RDS MariaDB med 20 GB och EFS för filer.
+- Databas: Jag använder Single-AZ. Det betyder att databasen körs i en tillgänglighetszon. Jag valde detta för att hålla nere kostnaden. Multi-AZ hade kostat mer eftersom databasen då får en extra instans i en annan zon.
+
+### Normal belastning
+
+Med två EC2-instanser blev kostnaden 105,59 USD per månad.
+
+### Hög belastning
+
+Med fler EC2-instanser blev kostnaden 121,36 USD per månad.
+
+### Största kostnaderna
+
+De största kostnaderna är RDS MariaDB, EC2 och lastbalanseraren. Databasen kostar mest eftersom den är igång hela tiden. Fler webbservrar gör också att kostnaden ökar.
+
+### Kostnader som inte ingår
+
+Detta är uppskattade kostnader. Extra kostnader kan tillkomma, till exempel för dataöverföring ut från AWS.
+
+---
+
+## Arkitektur – så fungerar lösningen
+
+Min lösning består av en Application Load Balancer, flera WordPress-servrar, en databas och fillagring.
+
+När en besökare öppnar webbplatsen går trafiken först till `novatrix-alb`. Därifrån skickas trafiken vidare till webbservrarna genom Target Group `novatrix-web-tg`.
+
+Webbservrarna körs på EC2 och hanteras av Auto Scaling Group `novatrix-web-asg`. Gruppen använder Launch Template `novatrix-web-lt` för att starta nya servrar med samma inställningar.
+
+ALB och Auto Scaling använder två publika subnät i olika Availability Zones. Gruppen har minst två servrar och kan öka till fyra när CPU-belastningen når målet på 50 %.
+
+ALB kontrollerar att webbservrarna fungerar genom health checks. Auto Scaling kan ersätta servrar som rapporteras som felaktiga.
+
+Webbservrarna använder RDS MariaDB för databasen och EFS för filer.
+
+### Arkitekturbild
+
+```text
+              Besökare
+                  |
+                  v
+       Application Load Balancer
+              novatrix-alb
+             HTTP port 80
+                  |
+                  v
+               Target Group
+             novatrix-web-tg
+                  |
+           +------+------+
+           |             |
+           v             v
+       EC2-server    EC2-server
+        AZ A           AZ B
+           |             |
+           +------+------+
+                  |
+             +----+----+
+             |         |
+             v         v
+        RDS MariaDB    EFS
+        Single-AZ      Filer
+
+
+        Auto Scaling Group
+         novatrix-web-asg
+                 |
+        Hanterar EC2-servrarna
+        Minst 2 – högst 4
+        CPU-mål: 50 %
+        Launch Template:
+        novatrix-web-lt
+```
