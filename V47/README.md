@@ -32,11 +32,11 @@ Visar att ALB:s säkerhetsgrupp tillåter inkommande HTTP-trafik på port 80 och
 
 Visar att det nya publika subnätet `novatrix-public-b` har CIDR `10.0.3.0/24` och ligger i Availability Zone `eu-north-1b`.
 
-<img width="850" height="440" alt="subpublic02" src="https://github.com/user-attachments/assets/013bbc87-9a9c-4ae4-bd90-83e2c84ce87a" />
+<img width="400" height="200" alt="subpublic02" src="https://github.com/user-attachments/assets/013bbc87-9a9c-4ae4-bd90-83e2c84ce87a" />
 
 Visar det befintliga publika subnätet `novatrix-public` med CIDR `10.0.1.0/24` i Availability Zone `eu-north-1a`.
 
-<img width="734" height="414" alt="subpublic01" src="https://github.com/user-attachments/assets/81c2f513-62f9-40d8-b8d2-89da0ec0efbf" />
+<img width="400" height="200" alt="subpublic01" src="https://github.com/user-attachments/assets/81c2f513-62f9-40d8-b8d2-89da0ec0efbf" />
 
 Port 80 är stängd för direkt åtkomst, medan SSH fortfarande fungerar. Båda testerna gav förväntat resultat.
 
