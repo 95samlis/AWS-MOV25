@@ -128,7 +128,7 @@ Kommandot uppdaterade två rader utan några varningar.
 
 SELECT-kommandot bekräftar att både `home` och `siteurl` har uppdaterats till den nya ALB-adressen.
 
-<img width="1260" height="370" alt="Skärmbild 2026-11-24 055351" src="https://github.com/user-attachments/assets/dbe6f9cb-35d1-4e8b-8b6e-094e28d34891" />
+<img width="900" height="300" alt="Skärmbild 2026-11-24 055351" src="https://github.com/user-attachments/assets/dbe6f9cb-35d1-4e8b-8b6e-094e28d34891" />
 
 ---
 
