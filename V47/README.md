@@ -41,7 +41,7 @@ Visar det befintliga publika subnätet `novatrix-public` med CIDR `10.0.1.0/24` 
 Port 80 är stängd för direkt åtkomst, medan SSH fortfarande fungerar. Båda testerna gav förväntat resultat.
 
 <img width="914" height="78" alt="sshlogin1" src="https://github.com/user-attachments/assets/2d030abe-a10a-4205-a846-d4b86ed0f353" />
-<img width="300" height="150" alt="tcptest" src="https://github.com/user-attachments/assets/49e689f6-9cf5-4c25-a598-03781773b86f" />
+<img width="350" height="180" alt="tcptest" src="https://github.com/user-attachments/assets/49e689f6-9cf5-4c25-a598-03781773b86f" />
 
 
 ---
