@@ -28,7 +28,7 @@ Jag validerade YAML-filen med AWS CLI, skapade ett Change Set och granskade änd
 
 Visar att ALB:s säkerhetsgrupp tillåter inkommande HTTP-trafik på port 80 och HTTPS-trafik på port 443.
 
-<img width="1000" height="300" alt="albsg01" src="https://github.com/user-attachments/assets/607c3f3e-0393-4434-81c3-fdd66fc81005" />
+<img width="1000" height="270" alt="albsg01" src="https://github.com/user-attachments/assets/607c3f3e-0393-4434-81c3-fdd66fc81005" />
 
 Visar att det nya publika subnätet `novatrix-public-b` har CIDR `10.0.3.0/24` och ligger i Availability Zone `eu-north-1b`.
 
