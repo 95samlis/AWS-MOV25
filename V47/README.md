@@ -184,7 +184,7 @@ Auto Scaling Group visade två instanser med status `InService` och `Healthy`.
 
 WordPress Admin kunde öppnas via ALB:s DNS-adress.
   
-<img width="1650" height="440" alt="test04" src="https://github.com/user-attachments/assets/7c4f51cf-a119-4648-ab7f-a0facbb111d6" />
+<img width="1400" height="400" alt="test04" src="https://github.com/user-attachments/assets/7c4f51cf-a119-4648-ab7f-a0facbb111d6" />
 
 ### Resultat
 
