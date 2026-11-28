@@ -92,25 +92,24 @@ Nu har jag samlat mätvärden och loggar i CloudWatch. Det gör det enklare att 
 
 ## 8. SNS och larm i CloudWatch
 
-Jag skapade ett SNS-topic med namnet `novatrix-larm`. Det fungerar som mottagare för alla larm och skickar vidare meddelanden till prenumeranterna.
+Jag skapade ett SNS-topic med namnet `novatrix-larm`. Dit skickas alla larm som sedan skickas vidare till prenumeranterna.
 
-Jag skapade en prenumeration med protokollet Email och angav min e-postadress. Därefter bekräftade jag prenumerationen via mejlet från AWS.
+Jag lade till min e-postadress som prenumerant och bekräftade den via mejlet från AWS.
 
 ### Larmkonfiguration
 
-Jag skapade larm för Auto Scaling-gruppen `novatrix-web-asg` utifrån de mätvärden som samlas in i CloudWatch.
+Jag skapade fyra larm i CloudWatch för att hålla koll på servrarna:
 
-Jag konfigurerade följande larm:
-
-- CPU – `novatrix-cpu-high`: Larm när den genomsnittliga CPU-användningen överstiger 70 % under 5 minuter.
+- CPU – `novatrix-cpu-high`: Larm när CPU-användningen överstiger 70 % under 5 minuter.
 - Minne – `novatrix-memory-high`: Larm när minnesanvändningen överstiger 85 % under 5 minuter.
 - Disk – `novatrix-disk-high`: Larm när diskanvändningen på `/` överstiger 85 % under 5 minuter.
-- Unhealthy – `novatrix-unhealthy`: Larm när minst en server inte är frisk under 5 minuter i Availability Zone `eu-north-1a`.
+- Unhealthy – `novatrix-unhealthy`: Larm när minst en server inte fungerar som den ska under 3 minuter. Jag övervakar `eu-north-1a`.
 
-Alla larm är kopplade till SNS-topic `novatrix-larm`. Jag har även lagt till avisering när larmen återgår till OK, så att jag får veta när problemet är löst.
+Alla larm skickar meddelanden via `novatrix-larm`. Jag får även ett mejl när ett larm går tillbaka till normalt läge.
 
 ### Resultat
 
-<img width="2268" height="234" alt="image" src="https://github.com/user-attachments/assets/465d51ac-04bc-48f6-80b5-be55edb765ea" />
+<img width="2230" height="242" alt="image" src="https://github.com/user-attachments/assets/ef0a204c-924e-42f0-8a12-cd1df34ab400" />
+
 
 ---
