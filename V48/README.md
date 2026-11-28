@@ -1,4 +1,4 @@
-V48 - Monitorering och cloud native
+# V48 - Monitorering och cloud native
 
 **Samuel Lissbro**
 
@@ -8,32 +8,31 @@ Syftet med uppgiften är att lära mig övervaka en AWS-miljö med hjälp av Clo
 
 ---
 
-## 1. Samlar in mätvärden och skapar Dashboard i CloudWatch
+### Genomförande 
 
-Jag började med att samla viktiga mätvärden från EC2 och lastbalanseraren i CloudWatch för att få en bättre överblick över hur min AWS-lösning fungerar.
+I den här uppgiften har jag arbetat med att övervaka min AWS-lösning med hjälp av CloudWatch. Jag har satt upp insamling av mätvärden och loggar, skapat larm som skickar mejl via SNS och byggt en dashboard där jag kan se hur lösningen fungerar.
 
-**Jag valde följande mätvärden:**
+Här går jag igenom vad jag har gjort steg för steg och visar resultatet med skärmbilder.
 
-- CPUUtilization (Average): Genomsnittlig CPU-användning.
-- RequestCount (Sum): Totalt antal förfrågningar.
-- TargetResponseTime (Average): Genomsnittlig svarstid.
-- HealthyHostCount (Maximum): Högsta antalet fungerande servrar.
-- UnHealthyHostCount (Maximum): Högsta antalet servrar som inte fungerar.
+## Innehållsförteckning
 
-Jag valde en period på 5 minuter för alla mätvärden.
+1. [IAM-behörigheter](#1-iam-behörigheter)
+2. [Parameter Store](#2-parameter-store)
+3. [Log Groups](#3-log-groups)
+4. [Launch Template](#4-launch-template)
+5. [Instance refresh och verifiering](#5-instance-refresh-och-verifiering)
+6. [Disk- och minnesmätvärden](#6-disk--och-minnesmätvärden)
+7. [SNS och larm i CloudWatch](#7-sns-och-larm-i-cloudwatch)
+8. [Test av larmkedjan](#8-test-av-larmkedjan)
+9. [Dashboard i CloudWatch – novatrix-drift](#9-dashboard-i-cloudwatch--novatrix-drift)
 
-För att samla allt på ett ställe skapade jag en CloudWatch Dashboard med namnet `novatrix-dashboard`. Där kan jag enkelt följa mätvärdena och få en överblick över hur lösningen mår.
+---
 
-### Resultat
-
-<img width="1490" height="756" alt="Skärmbild 2026-11-26 065528" src="https://github.com/user-attachments/assets/34501170-cccd-4782-81bd-231f8d2977d7" />
-
-
-## 2. IAM-behörigheter
+## 1. IAM-behörigheter
 
 Jag lade till behörigheter för CloudWatch Agent i `webb.yaml` och uppdaterade CloudFormation-stacken. Uppdateringen gick igenom utan fel.
 
-## 3. Parameter Store
+## 2. Parameter Store
 
 Jag skapade parametern `AmazonCloudWatch-novatrix` med konfigurationen för CloudWatch Agent. Jag testade med AWS CLI och kunde hämta konfigurationen.
 
@@ -42,7 +41,7 @@ Jag skapade parametern `AmazonCloudWatch-novatrix` med konfigurationen för Clou
 <img width="2258" height="272" alt="Skärmbild 2026-11-26 094700" src="https://github.com/user-attachments/assets/ebcf2608-867f-4fea-8dc2-1c92294d1faa" />
 
 
-## 4. Log Groups
+## 3. Log Groups
 
 Jag skapade två Log Groups i CloudWatch:
 
@@ -53,13 +52,13 @@ Båda sparar loggar i två veckor.
 
 <img width="2788" height="318" alt="Skärmbild 2026-11-26 093957" src="https://github.com/user-attachments/assets/828dddde-c7c4-47d3-bf3e-5d2a92e41b76" />
 
-### 5. Launch Template
+## 4. Launch Template
 
 Jag skapade version 2 av novatrix-web-lt och lade till User Data för installation och start av CloudWatch Agent. Jag kontrollerade även att version 2 var vald som standardversion.
 <img width="2116" height="90" alt="image" src="https://github.com/user-attachments/assets/abb8d821-7e7e-43eb-93e1-739773a4c5fd" />
 
 
-## 6. Instance refresh och verifiering
+## 5. Instance refresh och verifiering
 
 Jag startade en Instance Refresh på `novatrix-web-asg` för att byta ut servrarna så att de använder den nya versionen med CloudWatch Agent. Uppdateringen slutfördes utan problem och jag kontrollerade att statusen var Successful och att 100 % av instanserna hade uppdaterats.
 
@@ -67,7 +66,7 @@ Jag startade en Instance Refresh på `novatrix-web-asg` för att byta ut servrar
 
 <img width="2052" height="282" alt="Skärmbild 2026-11-26 114206" src="https://github.com/user-attachments/assets/50066c02-fc6f-4754-9bbd-362ab1ca6b49" />
 
-## 7. Disk- och minnesmätvärden
+## 6. Disk- och minnesmätvärden
 
 Efter installationen av CloudWatch Agent kan jag även se disk- och minnesanvändningen i CloudWatch. Mätvärdena `disk_used_percent` och `mem_used_percent` visar hur stor andel av disk respektive minne som används i Auto Scaling-gruppen `novatrix-web-asg`.
 
@@ -90,7 +89,7 @@ Nu har jag samlat mätvärden och loggar i CloudWatch. Det gör det enklare att 
 
 ---
 
-## 8. SNS och larm i CloudWatch
+## 7. SNS och larm i CloudWatch
 
 Jag skapade ett SNS-topic med namnet `novatrix-larm`. Dit skickas alla larm som sedan skickas vidare till prenumeranterna.
 
@@ -112,7 +111,7 @@ Alla larm skickar meddelanden via `novatrix-larm`. Jag får även ett mejl när 
 <img width="2230" height="242" alt="image" src="https://github.com/user-attachments/assets/ef0a204c-924e-42f0-8a12-cd1df34ab400" />
 
 
-## 9. Test av larmkedjan
+## 8. Test av larmkedjan
 
 Jag körde följande kommando i AWS CloudShell för att testa CPU-larmet:
 
@@ -133,7 +132,23 @@ Jag fick ett mejl när larmet gick till ALARM och ett nytt när det återgick ti
 
 ---
 
+## 9. Dashboard i CloudWatch – `novatrix-drift`
 
+Jag skapade en dashboard i CloudWatch med namnet `novatrix-drift` för att samla övervakningen på ett ställe.
+
+Jag lade till följande delar:
+
+1. Alarm status: Visar status för de fyra larmen: CPU, disk, minne och unhealthy hosts.
+2. CPU: Ett linjediagram som visar CPU-användningen för Auto Scaling-gruppen med värdet Average.
+3. Minne och disk: Ett linjediagram som visar minnes- och diskanvändningen för gruppen med värdet Maximum.
+4. Healthy och UnHealthyHostCount: Ett linjediagram som visar antalet friska och icke friska servrar.
+5. RequestCount: En siffervisning som visar antalet förfrågningar till lastbalanseraren.
+
+Dashboarden samlar larmen och mätvärdena på ett ställe, vilket gör det enklare att följa lösningen. Se bilden nedan.
+
+### Resultat
+
+<img width="3182" height="856" alt="image" src="https://github.com/user-attachments/assets/f99fb0e7-e749-4579-8e33-6d3343324f85" />
 
 
 
