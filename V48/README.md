@@ -112,4 +112,29 @@ Alla larm skickar meddelanden via `novatrix-larm`. Jag får även ett mejl när 
 <img width="2230" height="242" alt="image" src="https://github.com/user-attachments/assets/ef0a204c-924e-42f0-8a12-cd1df34ab400" />
 
 
+## 9. Test av larmkedjan
+
+Jag körde följande kommando i AWS CloudShell för att testa CPU-larmet:
+
+```bash
+aws cloudwatch set-alarm-state \
+  --alarm-name novatrix-cpu-high \
+  --state-value ALARM \
+  --state-reason "Test av larmkedjan" \
+  --region eu-north-1
+```
+
+Jag fick ett mejl när larmet gick till ALARM och ett nytt när det återgick till OK. Testet fungerade.
+
+### Resultat 
+
+<img width="1372" height="128" alt="image" src="https://github.com/user-attachments/assets/b467b113-2c23-4ec2-a729-9ae335023e30" />
+
+
+---
+
+
+
+
+
 ---
