@@ -75,4 +75,42 @@ Efter installationen av CloudWatch Agent kan jag även se disk- och minnesanvän
 
 <img width="2812" height="822" alt="image" src="https://github.com/user-attachments/assets/d69d5074-d527-482b-8bb0-f467e4ef1be4" />
 
+### Log Analytics i CloudWatch
 
+Jag konfigurerade en fråga som tar bort automatiska ELB HealthChecker-anrop från access-loggen och räknar antalet förfrågningar per HTTP-svar.
+
+### Resultat
+
+
+<img width="1636" height="508" alt="Skärmbild 2026-11-27 232533" src="https://github.com/user-attachments/assets/2aaeb645-8796-4332-a69d-153676e16937" />
+
+### Sammanfattning
+
+Nu har jag samlat mätvärden och loggar i CloudWatch. Det gör det enklare att följa hur servrarna mår och upptäcka problem. Nästa steg är att ställa in larm som meddelar mig när något inte fungerar som det ska.
+
+---
+
+## 8. SNS och larm i CloudWatch
+
+Jag skapade ett SNS-topic med namnet `novatrix-larm`. Det fungerar som mottagare för alla larm och skickar vidare meddelanden till prenumeranterna.
+
+Jag skapade en prenumeration med protokollet Email och angav min e-postadress. Därefter bekräftade jag prenumerationen via mejlet från AWS.
+
+### Larmkonfiguration
+
+Jag skapade larm för Auto Scaling-gruppen `novatrix-web-asg` utifrån de mätvärden som samlas in i CloudWatch.
+
+Jag konfigurerade följande larm:
+
+- CPU – `novatrix-cpu-high`: Larm när den genomsnittliga CPU-användningen överstiger 70 % under 5 minuter.
+- Minne – `novatrix-memory-high`: Larm när minnesanvändningen överstiger 85 % under 5 minuter.
+- Disk – `novatrix-disk-high`: Larm när diskanvändningen på `/` överstiger 85 % under 5 minuter.
+- Unhealthy – `novatrix-unhealthy`: Larm när minst en server inte är frisk under 5 minuter i Availability Zone `eu-north-1a`.
+
+Alla larm är kopplade till SNS-topic `novatrix-larm`. Jag har även lagt till avisering när larmen återgår till OK, så att jag får veta när problemet är löst.
+
+### Resultat
+
+<img width="2268" height="234" alt="image" src="https://github.com/user-attachments/assets/465d51ac-04bc-48f6-80b5-be55edb765ea" />
+
+---
